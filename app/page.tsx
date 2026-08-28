@@ -1,8 +1,7 @@
-
-import { useState } from "react"
-
+"use client"
 
 const Home = () => {
- return <button>test</button>
+  return <button>test</button>
+}
 
 export default Home
