@@ -4,16 +4,17 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id        String    @id @default(uuid())
-  email     String
+  email     String    @unique
   name      String
-  bookings  Booking[]
-  ratings   Rating[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  bookings  Booking[]
+  ratings   Rating[]
 }
 
 model Barbershop {
@@ -43,12 +44,12 @@ model BarbershopService {
 model Booking {
   id        String            @id @default(uuid())
   userId    String
-  user      User              @relation(fields: [userId], references: [id])
   serviceId String
-  service   BarbershopService @relation(fields: [serviceId], references: [id])
   date      DateTime
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+  service   BarbershopService @relation(fields: [serviceId], references: [id])
+  user      User              @relation(fields: [userId], references: [id])
 }
 
 model Rating {
@@ -56,9 +57,9 @@ model Rating {
   rating       Int
   comment      String?
   userId       String
-  user         User       @relation(fields: [userId], references: [id])
   barbershopId String
-  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
 }
