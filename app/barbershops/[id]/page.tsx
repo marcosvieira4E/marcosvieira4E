@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react"
 import { Button } from "@/app/components/_ui/button"
+import ServiceItem from "@/app/components/service-item"
 
 type BarbershopPageProps = {
   params: Promise<{ id: string }>
@@ -18,6 +19,7 @@ const BarbershopPage = async ({ params }: BarbershopPageProps) => {
     },
     include: {
       ratings: true,
+      services: true,
     },
   })
 
@@ -85,6 +87,16 @@ const BarbershopPage = async ({ params }: BarbershopPageProps) => {
       <div className="space-y-3 border-b border-solid p-5">
         <h2 className="text-xs font-bold text-gray-400 uppercase">Sobre Nós</h2>
         <p className="text-justify text-sm">{barbershop.description}</p>
+      </div>
+
+      <div className="space-y-3 p-5">
+        <h2 className="text-xs font-bold text-gray-400 uppercase">Serviços</h2>
+
+        <div className="flex flex-col gap-3">
+          {barbershop.services.map((service) => (
+            <ServiceItem service={service} key={service.id} />
+          ))}
+        </div>
       </div>
     </div>
   )
