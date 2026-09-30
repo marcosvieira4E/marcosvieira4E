@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react"
 import { Button } from "@/app/components/_ui/button"
 import ServiceItem from "@/app/components/service-item"
+import PhoneItem from "@/app/components/phone-item"
 
 type BarbershopPageProps = {
   params: Promise<{ id: string }>
@@ -89,7 +90,7 @@ const BarbershopPage = async ({ params }: BarbershopPageProps) => {
         <p className="text-justify text-sm">{barbershop.description}</p>
       </div>
 
-      <div className="space-y-3 p-5">
+      <div className="space-y-3 border-b border-solid p-5">
         <h2 className="text-xs font-bold text-gray-400 uppercase">Serviços</h2>
 
         <div className="flex flex-col gap-3">
@@ -97,6 +98,14 @@ const BarbershopPage = async ({ params }: BarbershopPageProps) => {
             <ServiceItem service={service} key={service.id} />
           ))}
         </div>
+      </div>
+
+      <div className="space-y-3 p-5">
+        <h2 className="text-xs font-bold text-gray-400 uppercase">Contato</h2>
+
+        {barbershop.phones.map((phone, index) => (
+          <PhoneItem key={index} phone={phone} />
+        ))}
       </div>
     </div>
   )
