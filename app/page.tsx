@@ -57,7 +57,6 @@ const Home = async () => {
           </Button>
         </div>
 
-        {/* BUSCA RÁPIDA */}
         <div className="mt-6 flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
           {quickSearchData.map((option) => (
             <Button key={option.title} className="gap-2" variant="secondary">
@@ -81,7 +80,6 @@ const Home = async () => {
           />
         </div>
 
-        {/* AGENDAMENTO */}
         <h2 className="mt-6 mb-3 text-xs font-bold text-gray-400 uppercase">
           Agendamento
         </h2>
@@ -113,7 +111,6 @@ const Home = async () => {
           </CardContent>
         </Card>
 
-        {/* RECOMENDADOS */}
         <h2 className="mt-6 mb-3 text-xs font-bold text-gray-400 uppercase">
           Recomendados
         </h2>
@@ -124,7 +121,6 @@ const Home = async () => {
           ))}
         </div>
 
-        {/* POPULARES */}
         <h2 className="mt-6 mb-3 text-xs font-bold text-gray-400 uppercase">
           Populares
         </h2>
