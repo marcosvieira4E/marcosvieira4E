@@ -1,5 +1,8 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
+import { signIn, signOut, useSession } from "next-auth/react"
 import {
   CalendarIcon,
   HomeIcon,
@@ -8,6 +11,7 @@ import {
   MenuIcon,
 } from "lucide-react"
 import { Button, buttonVariants } from "./button"
+import { Avatar, AvatarImage, AvatarFallback } from "./avatar"
 import {
   Sheet,
   SheetClose,
@@ -27,6 +31,16 @@ import {
 import { quickSearchData } from "../_constants/quick-search"
 
 const SidebarSheet = () => {
+  const { data } = useSession()
+
+  const handleLoginWithGoogleClick = () => {
+    signIn("google")
+  }
+
+  const handleLogoutClick = () => {
+    signOut()
+  }
+
   const orderedSearchData = [...quickSearchData].sort((a, b) => {
     const order = [
       "Cabelo",
@@ -55,36 +69,64 @@ const SidebarSheet = () => {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center justify-between border-b border-white/10 py-6">
-          <p className="text-sm font-semibold">Olá. Faça seu login!</p>
+        {data?.user ? (
+          <div className="flex items-center gap-3 border-b border-white/10 py-6">
+            <Avatar>
+              <AvatarImage
+                src={data.user.image ?? undefined}
+                referrerPolicy="no-referrer"
+              />
+              <AvatarFallback>
+                {data.user.name?.charAt(0) ?? "U"}
+              </AvatarFallback>
+            </Avatar>
 
-          <Dialog>
-            <DialogTrigger
-              aria-label="Fazer login"
-              className={buttonVariants({
-                size: "icon",
-                variant: "ghost",
-                className:
-                  "bg-violet-500 text-white hover:bg-violet-600 hover:text-white",
-              })}
-            >
-              <LogInIcon size={18} />
-            </DialogTrigger>
+            <div>
+              <p className="font-bold">{data.user.name}</p>
+              <p className="text-xs text-white/70">{data.user.email}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between border-b border-white/10 py-6">
+            <p className="text-sm font-semibold">Olá. Faça seu login!</p>
 
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Faça login na plataforma</DialogTitle>
-                <DialogDescription>
-                  Conecte-se usando uma conta do Google.
-                </DialogDescription>
-              </DialogHeader>
-              <Button variant="outline">
-                <Image src="/google.svg" alt="Google" width={18} height={18} />
-                Entrar com Google
-              </Button>
-            </DialogContent>
-          </Dialog>
-        </div>
+            <Dialog>
+              <DialogTrigger
+                aria-label="Fazer login"
+                className={buttonVariants({
+                  size: "icon",
+                  variant: "ghost",
+                  className:
+                    "bg-violet-500 text-white hover:bg-violet-600 hover:text-white",
+                })}
+              >
+                <LogInIcon size={18} />
+              </DialogTrigger>
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Faça login na plataforma</DialogTitle>
+                  <DialogDescription>
+                    Conecte-se usando uma conta do Google.
+                  </DialogDescription>
+                </DialogHeader>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleLoginWithGoogleClick}
+                >
+                  <Image
+                    src="/google.svg"
+                    alt="Google"
+                    width={18}
+                    height={18}
+                  />
+                  Entrar com Google
+                </Button>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2 border-b border-white/10 py-5">
           <SheetClose
@@ -127,15 +169,18 @@ const SidebarSheet = () => {
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 py-5">
-          <Button
-            variant="ghost"
-            className="min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white"
-          >
-            <LogOutIcon size={18} />
-            Sair da conta
-          </Button>
-        </div>
+        {data?.user && (
+          <div className="flex flex-col gap-2 py-5">
+            <Button
+              variant="ghost"
+              className="min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white"
+              onClick={handleLogoutClick}
+            >
+              <LogOutIcon size={18} />
+              Sair da conta
+            </Button>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )
