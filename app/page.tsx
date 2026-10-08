@@ -1,13 +1,12 @@
 import Image from "next/image"
-import { SearchIcon } from "lucide-react"
 import Header from "./components/_ui/header"
 import { Button } from "./components/_ui/button"
-import { Input } from "./components/_ui/input"
 import { Card, CardContent } from "./components/_ui/card"
 import { Badge } from "./components/_ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "./components/_ui/avatar"
 import { db } from "./_lib/prisma"
 import BarbershopItem from "./components/barbershop-item"
+import Search from "./components/search"
 
 type QuickSearchOption = {
   imageUrl: string
@@ -50,12 +49,7 @@ const Home = async () => {
         <h2 className="text-xl font-bold">Olá, Marcos!</h2>
         <p className="text-sm">Domingo, 30 de agosto.</p>
 
-        <div className="mt-6 flex items-center gap-2">
-          <Input placeholder="Faça sua busca..." />
-          <Button size="icon" className="shrink-0">
-            <SearchIcon />
-          </Button>
-        </div>
+        <Search />
 
         <div className="mt-6 flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
           {quickSearchData.map((option) => (

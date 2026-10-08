@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-neutral-950">
         <AuthProvider>
           <div className="bg-background mx-auto w-full max-w-md md:max-w-2xl lg:max-w-6xl">
-            {children}
+            <div className="flex-1">{children}</div>
             <Toaster />
             <Footer />
           </div>
