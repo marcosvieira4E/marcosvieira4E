@@ -9,7 +9,7 @@ import { Input } from "./_ui/input"
 import { Button } from "./_ui/button"
 
 const formSchema = z.object({
-  search: z.string().trim().min(1, "Digite algo para buscar."),
+  title: z.string().trim().min(1, "Digite algo para buscar."),
 })
 
 type SearchValues = z.infer<typeof formSchema>
@@ -20,12 +20,12 @@ const Search = () => {
   const form = useForm<SearchValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      search: "",
+      title: "",
     },
   })
 
   const handleSubmit = (data: SearchValues) => {
-    router.push(`/barbershops?search=${encodeURIComponent(data.search)}`)
+    router.push(`/barbershops?title=${encodeURIComponent(data.title)}`)
   }
 
   return (
@@ -37,12 +37,12 @@ const Search = () => {
         <Input
           placeholder="Faça sua busca..."
           className="w-full"
-          {...form.register("search")}
+          {...form.register("title")}
         />
 
-        {form.formState.errors.search && (
+        {form.formState.errors.title && (
           <p className="mt-1 text-sm text-red-500" role="alert">
-            {form.formState.errors.search.message}
+            {form.formState.errors.title.message}
           </p>
         )}
       </div>
