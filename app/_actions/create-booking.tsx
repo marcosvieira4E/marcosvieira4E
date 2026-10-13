@@ -1,20 +1,28 @@
 "use server"
 
-import { db } from "../_lib/prisma"
+import { getServerSession } from "next-auth"
+
+import { db } from "@/app/_lib/prisma"
+import { authOptions } from "@/app/_lib/auth-options"
 
 interface CreateBookingParams {
-  userId: string
   serviceId: string
   date: Date
 }
 
 export const createBooking = async ({
-  userId,
   serviceId,
   date,
 }: CreateBookingParams) => {
-  if (!userId || !serviceId) {
-    throw new Error("Usuário e serviço são obrigatórios.")
+  const session = await getServerSession(authOptions)
+  const userId = session?.user?.id
+
+  if (!userId) {
+    throw new Error("Faça login para confirmar o agendamento.")
+  }
+
+  if (!serviceId) {
+    throw new Error("O serviço é obrigatório.")
   }
 
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
