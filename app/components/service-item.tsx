@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn, useSession } from "next-auth/react"
 import { format, isSameDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { toast } from "sonner"
@@ -54,6 +55,7 @@ const TIME_LIST = [
 
 const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
   const router = useRouter()
+  const { data: session, status } = useSession()
 
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>()
@@ -134,6 +136,11 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
   }, [selectedDate, selectedTime])
 
   const handleConfirmBooking = async () => {
+    if (status !== "authenticated" || !session?.user?.id) {
+      toast.error("Faça login para confirmar o agendamento.")
+      return
+    }
+
     if (!selectedDateTime || !selectedTime) {
       toast.error("Selecione uma data e um horário.")
       return
@@ -143,6 +150,7 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
 
     try {
       await createBooking({
+        userId: session.user.id,
         serviceId: service.id,
         date: selectedDateTime,
       })
@@ -174,6 +182,12 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleGoogleSignIn = async () => {
+    await signIn("google", {
+      callbackUrl: window.location.href,
+    })
   }
 
   return (
@@ -314,16 +328,30 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
                 </section>
               )}
 
-              {selectedDate && selectedTime && (
-                <Button
-                  type="button"
-                  onClick={handleConfirmBooking}
-                  disabled={isSubmitting}
-                  className="w-full bg-violet-600 text-white hover:bg-violet-700"
-                >
-                  {isSubmitting ? "Confirmando..." : "Confirmar agendamento"}
-                </Button>
-              )}
+              {selectedDate &&
+                selectedTime &&
+                (status === "authenticated" ? (
+                  <Button
+                    type="button"
+                    onClick={handleConfirmBooking}
+                    disabled={isSubmitting}
+                    className="w-full bg-violet-600 text-white hover:bg-violet-700"
+                  >
+                    {isSubmitting ? "Confirmando..." : "Confirmar agendamento"}
+                  </Button>
+                ) : status === "loading" ? (
+                  <Button type="button" disabled className="w-full">
+                    Verificando login...
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="w-full bg-violet-600 text-white hover:bg-violet-700"
+                  >
+                    Entrar com Google para reservar
+                  </Button>
+                ))}
             </div>
           </SheetContent>
         </Sheet>

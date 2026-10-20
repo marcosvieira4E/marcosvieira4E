@@ -8,12 +8,12 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(uuid())
-  email         String?    @unique
+  id            String    @id @default(uuid())
+  email         String?   @unique
   name          String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  emailVerified DateTime?  @map("email_verified")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified DateTime? @map("email_verified")
   image         String?
   bookings      Booking[]
   ratings       Rating[]
@@ -74,13 +74,13 @@ model Barbershop {
 }
 
 model BarbershopService {
-  id           String            @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   description  String
   imageUrl     String
-  price        Decimal           @db.Decimal(10, 2)
+  price        Decimal    @db.Decimal(10, 2)
   barbershopId String
-  barbershop   Barbershop        @relation(fields: [barbershopId], references: [id])
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
   bookings     Booking[]
 }
 
@@ -99,13 +99,13 @@ model Booking {
 }
 
 model Rating {
-  id          String     @id @default(uuid())
-  rating      Int
-  comment     String?
-  userId      String
+  id           String     @id @default(uuid())
+  rating       Int
+  comment      String?
+  userId       String
   barbershopId String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  barbershop  Barbershop @relation(fields: [barbershopId], references: [id])
-  user        User       @relation(fields: [userId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
 }

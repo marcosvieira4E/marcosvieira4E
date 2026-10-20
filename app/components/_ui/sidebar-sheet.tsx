@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { signIn, signOut, useSession } from "next-auth/react"
 import {
   CalendarIcon,
@@ -10,16 +11,10 @@ import {
   LogOutIcon,
   MenuIcon,
 } from "lucide-react"
-import { Button, buttonVariants } from "./button"
+
+import { quickSearchData } from "../_constants/quick-search"
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar"
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./sheet"
+import { Button, buttonVariants } from "./button"
 import {
   Dialog,
   DialogContent,
@@ -28,30 +23,53 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog"
-import { quickSearchData } from "../_constants/quick-search"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet"
+
+const SEARCH_ORDER = [
+  "Cabelo",
+  "Barba",
+  "Acabamento",
+  "Sobrancelha",
+  "Massagem",
+  "Hidratação",
+]
 
 const SidebarSheet = () => {
-  const { data } = useSession()
+  const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  const isHomeActive = pathname === "/"
+  const isBookingsActive =
+    pathname === "/bookings" || pathname.startsWith("/bookings/")
 
   const orderedSearchData = [...quickSearchData].sort((a, b) => {
-    const order = [
-      "Cabelo",
-      "Barba",
-      "Acabamento",
-      "Sobrancelha",
-      "Massagem",
-      "Hidratação",
-    ]
+    const indexA = SEARCH_ORDER.indexOf(a.title)
+    const indexB = SEARCH_ORDER.indexOf(b.title)
 
-    return order.indexOf(a.title) - order.indexOf(b.title)
+    return (
+      (indexA === -1 ? SEARCH_ORDER.length : indexA) -
+      (indexB === -1 ? SEARCH_ORDER.length : indexB)
+    )
   })
 
-  const handleLoginWithGoogleClick = () => {
-    signIn("google")
+  const handleLogin = async () => {
+    await signIn("google", {
+      callbackUrl: window.location.href,
+    })
   }
 
-  const handleLogoutClick = () => {
-    signOut()
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.replace("/")
+    router.refresh()
   }
 
   return (
@@ -70,21 +88,26 @@ const SidebarSheet = () => {
           </SheetTitle>
         </SheetHeader>
 
-        {data?.user ? (
+        {session?.user ? (
           <div className="flex items-center gap-3 border-b border-white/10 py-6">
             <Avatar>
               <AvatarImage
-                src={data.user.image ?? undefined}
+                src={session.user.image ?? undefined}
                 referrerPolicy="no-referrer"
+                alt={session.user.name ?? "Foto do usuário"}
               />
               <AvatarFallback>
-                {data.user.name?.charAt(0) ?? "U"}
+                {session.user.name?.trim().charAt(0) || "U"}
               </AvatarFallback>
             </Avatar>
 
-            <div>
-              <p className="font-bold">{data.user.name}</p>
-              <p className="text-xs text-white/70">{data.user.email}</p>
+            <div className="min-w-0">
+              <p className="truncate font-bold">
+                {session.user.name ?? "Usuário"}
+              </p>
+              <p className="truncate text-xs text-white/70">
+                {session.user.email}
+              </p>
             </div>
           </div>
         ) : (
@@ -108,14 +131,15 @@ const SidebarSheet = () => {
                 <DialogHeader>
                   <DialogTitle>Faça login na plataforma</DialogTitle>
                   <DialogDescription>
-                    Conecte-se usando uma conta do Google.
+                    Conecte-se usando sua conta do Google.
                   </DialogDescription>
                 </DialogHeader>
 
                 <Button
+                  type="button"
                   variant="outline"
                   className="w-full gap-2"
-                  onClick={handleLoginWithGoogleClick}
+                  onClick={handleLogin}
                 >
                   <Image src="/google.svg" alt="" width={18} height={18} />
                   Entrar com Google
@@ -127,10 +151,14 @@ const SidebarSheet = () => {
 
         <div className="flex flex-col gap-2 border-b border-white/10 py-5">
           <SheetClose
+            aria-current={isHomeActive ? "page" : undefined}
             className={buttonVariants({
               variant: "ghost",
-              className:
-                "min-h-9 justify-start gap-2 rounded-md bg-violet-500 text-sm text-white hover:bg-violet-600 hover:text-white",
+              className: `min-h-9 justify-start gap-2 rounded-md text-sm ${
+                isHomeActive
+                  ? "bg-violet-500 text-white hover:bg-violet-600 hover:text-white"
+                  : "text-white hover:bg-white/10 hover:text-white"
+              }`,
             })}
             nativeButton={false}
             render={<Link href="/" />}
@@ -139,21 +167,33 @@ const SidebarSheet = () => {
             Início
           </SheetClose>
 
-          <Button
-            variant="ghost"
-            className="min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white"
+          <SheetClose
+            aria-current={isBookingsActive ? "page" : undefined}
+            className={buttonVariants({
+              variant: "ghost",
+              className: `min-h-9 justify-start gap-2 rounded-md text-sm ${
+                isBookingsActive
+                  ? "bg-violet-500 text-white hover:bg-violet-600 hover:text-white"
+                  : "text-white hover:bg-white/10 hover:text-white"
+              }`,
+            })}
+            nativeButton={false}
+            render={<Link href="/bookings" />}
           >
             <CalendarIcon size={18} />
             Agendamentos
-          </Button>
+          </SheetClose>
         </div>
 
         <div className="flex flex-col gap-2 border-b border-white/10 py-5">
           {orderedSearchData.map((option) => (
-            <Button
+            <SheetClose
               key={option.title}
-              variant="ghost"
-              className="min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white"
+              className={buttonVariants({
+                variant: "ghost",
+                className:
+                  "min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white",
+              })}
               nativeButton={false}
               render={
                 <Link
@@ -163,16 +203,17 @@ const SidebarSheet = () => {
             >
               <Image src={option.imageUrl} alt="" width={18} height={18} />
               {option.title}
-            </Button>
+            </SheetClose>
           ))}
         </div>
 
-        {data?.user && (
+        {session?.user && (
           <div className="flex flex-col gap-2 py-5">
             <Button
+              type="button"
               variant="ghost"
               className="min-h-9 justify-start gap-2 text-sm text-white hover:bg-white/10 hover:text-white"
-              onClick={handleLogoutClick}
+              onClick={handleLogout}
             >
               <LogOutIcon size={18} />
               Sair da conta

@@ -1,20 +1,34 @@
 "use server"
 
 import { Prisma } from "@prisma/client"
+import { revalidatePath } from "next/cache"
 import { getServerSession } from "next-auth"
 
-import { db } from "../_lib/prisma"
 import { authOptions } from "../_lib/auth-options"
+import { db } from "../_lib/prisma"
 
 interface CreateBookingParams {
+  userId: string
   serviceId: string
   date: Date
 }
 
 export const createBooking = async ({
+  userId,
   serviceId,
   date,
 }: CreateBookingParams) => {
+  const session = await getServerSession(authOptions)
+  const authenticatedUserId = session?.user?.id
+
+  if (!authenticatedUserId) {
+    throw new Error("Usuário não autenticado. Faça login para continuar.")
+  }
+
+  if (authenticatedUserId !== userId) {
+    throw new Error("Usuário não autorizado.")
+  }
+
   if (!serviceId) {
     throw new Error("O serviço é obrigatório.")
   }
@@ -27,27 +41,24 @@ export const createBooking = async ({
     throw new Error("Escolha uma data e um horário futuros.")
   }
 
-  const session = await getServerSession(authOptions)
-  const userId = session?.user?.id
-
-  if (!userId) {
-    throw new Error("Faça login para confirmar o agendamento.")
-  }
-
   try {
-    return await db.booking.create({
+    const booking = await db.booking.create({
       data: {
-        userId,
+        userId: authenticatedUserId,
         serviceId,
         date,
       },
     })
+
+    revalidatePath("/barbershops/[id]", "page")
+
+    return booking
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      throw new Error("Esse horário acabou de ser reservado. Escolha outro.")
+      throw new Error("Esse horário já foi reservado. Escolha outro.")
     }
 
     throw error
