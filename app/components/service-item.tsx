@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { signIn, useSession } from "next-auth/react"
 import { format, isSameDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { Check } from "lucide-react"
 import { toast } from "sonner"
 
 import { createBooking } from "@/app/_actions/create-booking"
@@ -62,6 +63,7 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
   const [bookedTimes, setBookedTimes] = useState<string[]>([])
   const [isLoadingBookings, setIsLoadingBookings] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
 
   const handleDateSelect = (date?: Date) => {
     setSelectedDate(date)
@@ -155,8 +157,7 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
         date: selectedDateTime,
       })
 
-      toast.success("Agendamento confirmado!")
-      router.push("/")
+      setShowSuccessDialog(true)
     } catch (error) {
       const message =
         error instanceof Error
@@ -176,7 +177,7 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
             bookings.map((booking) => format(new Date(booking.date), "HH:mm")),
           )
         } catch {
-          // A mensagem do erro original já foi exibida.
+          // Mantém a mensagem do erro original.
         }
       }
     } finally {
@@ -188,6 +189,12 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
     await signIn("google", {
       callbackUrl: window.location.href,
     })
+  }
+
+  const handleSuccessConfirm = () => {
+    setShowSuccessDialog(false)
+    router.push("/")
+    router.refresh()
   }
 
   return (
@@ -294,31 +301,22 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
               )}
 
               {selectedDate && selectedTime && (
-                <section className="space-y-2 rounded-xl border border-white/10 bg-neutral-900 p-4 text-sm">
+                <section className="space-y-3 rounded-xl border border-white/10 bg-neutral-900 p-4 text-sm">
                   <h3 className="font-semibold">{service.name}</h3>
 
-                  <div className="text-muted-foreground flex justify-between gap-4">
-                    <span>Data</span>
-                    <span className="text-foreground text-right">
-                      {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                    </span>
-                  </div>
+                  <SummaryRow
+                    label="Data"
+                    value={format(selectedDate, "dd 'de' MMMM", {
+                      locale: ptBR,
+                    })}
+                  />
 
-                  <div className="text-muted-foreground flex justify-between gap-4">
-                    <span>Horário</span>
-                    <span className="text-foreground">{selectedTime}</span>
-                  </div>
-
-                  <div className="text-muted-foreground flex justify-between gap-4">
-                    <span>Barbearia</span>
-                    <span className="text-foreground text-right">
-                      {barbershopName}
-                    </span>
-                  </div>
+                  <SummaryRow label="Horário" value={selectedTime} />
+                  <SummaryRow label="Barbearia" value={barbershopName} />
 
                   <div className="flex justify-between gap-4 border-t border-white/10 pt-2">
                     <span>Valor</span>
-                    <span className="text-foreground font-semibold">
+                    <span className="font-semibold">
                       {service.price.toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -334,7 +332,7 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
                   <Button
                     type="button"
                     onClick={handleConfirmBooking}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isLoadingBookings}
                     className="w-full bg-violet-600 text-white hover:bg-violet-700"
                   >
                     {isSubmitting ? "Confirmando..." : "Confirmar agendamento"}
@@ -353,10 +351,59 @@ const ServiceItem = ({ service, barbershopName }: ServiceItemProps) => {
                   </Button>
                 ))}
             </div>
+
+            {showSuccessDialog && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 p-5">
+                <section
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="booking-success-title"
+                  className="w-full max-w-xs space-y-4 rounded-xl bg-[#191a1d] p-5 text-center shadow-2xl"
+                >
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-500">
+                    <Check
+                      aria-hidden="true"
+                      className="h-8 w-8 text-black"
+                      strokeWidth={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <h2
+                      id="booking-success-title"
+                      className="text-base font-semibold text-white"
+                    >
+                      Reserva Efetuada!
+                    </h2>
+
+                    <p className="text-sm leading-relaxed text-gray-400">
+                      Sua reserva foi agendada com sucesso.
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleSuccessConfirm}
+                    className="w-full bg-[#292a2e] text-white hover:bg-[#36373b]"
+                  >
+                    Confirmar
+                  </Button>
+                </section>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
       </CardContent>
     </Card>
+  )
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="text-muted-foreground flex justify-between gap-4">
+      <span>{label}</span>
+      <span className="text-foreground text-right">{value}</span>
+    </div>
   )
 }
 

@@ -85,17 +85,16 @@ model BarbershopService {
 }
 
 model Booking {
-  id        String            @id @default(uuid())
+  id        String        @id @default(uuid())
   userId    String
   serviceId String
   date      DateTime
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  service   BarbershopService @relation(fields: [serviceId], references: [id])
-  user      User              @relation(fields: [userId], references: [id])
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  // Impede duas reservas para o mesmo serviço no mesmo horário.
-  @@unique([serviceId, date])
+  service BarbershopService @relation(fields: [serviceId], references: [id])
+  user    User              @relation(fields: [userId], references: [id])
 }
 
 model Rating {
@@ -108,4 +107,9 @@ model Rating {
   updatedAt    DateTime   @updatedAt
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
   user         User       @relation(fields: [userId], references: [id])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
 }
