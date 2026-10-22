@@ -223,8 +223,13 @@ const Home = async () => {
                     Você ainda não tem agendamentos.
                   </p>
 
-                  <Button asChild variant="secondary" className="w-fit">
-                    <Link href="/barbershops">Encontrar barbearia</Link>
+                  <Button
+                    variant="secondary"
+                    className="w-fit"
+                    nativeButton={false}
+                    render={<Link href="/barbershops" />}
+                  >
+                    Encontrar barbearia
                   </Button>
                 </CardContent>
               </Card>
